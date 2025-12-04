@@ -19,7 +19,7 @@ class Profile(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100))
-    pathPhoto = db.Column(db.String(100))
+    avatar = db.Column(db.String(100))
     fullname = db.Column(db.String(100))
     last_commands = db.Column(db.JSON, default=dict)
     inbox_token = db.Column(db.String(32), unique=True, nullable=False, default=lambda: secrets.token_hex(16))
@@ -29,3 +29,17 @@ class Profile(db.Model):
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True)
     user = db.relationship('User', back_populates='profile')
+    
+    def get_avatar_filename(self):
+        """مثلاً: a1b2c3d4e5f6g7h8.jpg"""
+        if not self.avatar or self.avatar == 'default.jpg':
+            return 'default.jpg'
+        # اگر فقط پسوند ذخیره کردی (مثل "jpg") → با inbox_token ترکیب میشه
+        if len(self.avatar) <= 6:  # یعنی فقط پسوند ذخیره شده
+            return f"{self.inbox_token}.{self.avatar}"
+        return self.avatar  # اگر کل نام فایل ذخیره شده باشه
+
+    def get_avatar_url(self):
+        """آدرس کامل برای استفاده در HTML"""
+        filename = self.get_avatar_filename()
+        return f"/static/uploads/avatars/{filename}"

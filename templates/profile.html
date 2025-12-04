@@ -1,18 +1,57 @@
 <main class="card">
-    <section class="avatar"></section>
+    <section class="avatar" id="avatarSection">
+        <!-- نمایش آواتار -->
+        {% if profile and profile.get_avatar_url() %}
+            <img src="{{ profile.get_avatar_url() }}?v={{ range(1000) | random }}" 
+                alt="Do Refresh" id="avatarImg" class="avatar-img">
+        {% else %}
+            <img src="/static/uploads/avatars/default.jpg" 
+                alt="No Avatar" id="avatarImg" class="avatar-img">
+        {% endif %}
 
-    <section class="info">
+        <!-- دکمه تغییر آواتار (روی عکس) -->
+        <label for="avatarInput" class="avatar-edit-btn" title="تغییر آواتار">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M5 12h14"></path>
+                <path d="M12 5v14"></path>
+            </svg>
+        </label>
+
+        <input type="file" id="avatarInput" name="avatar" accept="image/*" style="display:none">
+    </section>
+
+    
+    <section class="info" style="position: relative">
+
+      <div class="row" id="fullname"> 
+          <span class="welcome">Welcom My Friend</span>
+      </div>
+
       <div class="row">
-        <div class="label">name:</div>
+        <div class="label">fullname:</div>
         <div class="value">
-          <input type="text" class="editable-input" value="{{ name or '' }}" readonly>
+          <input type="text" name="fullname" class="editable-input" value="{{ fullname or '' }}" readonly>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="label">username:</div>
+        <div class="value">
+          <input type="text" name="username" class="editable-input" value="{{ username or '' }}" readonly>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="label">password:</div>
+        <div class="value">
+          <input type="password" name="password" class="editable-input" value="{{ password or '' }}" readonly>
         </div>
       </div>
 
       <div class="row">
         <div class="label">email:</div>
         <div class="value">
-          <input type="email" class="editable-input" value="{{ email or '' }}" readonly>
+          <input type="email" name="email" class="editable-input" value="{{ email or '' }}" readonly>
         </div>
       </div>
 

@@ -30,3 +30,5 @@ Thumbs.db
 # اگر بعداً از docker یا چیز دیگه استفاده کردی
 .docker/
 node_modules/
+
+static/uploads/

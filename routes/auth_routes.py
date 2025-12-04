@@ -25,7 +25,7 @@ def signup():
         db.session.flush()
 
         inbox_token = secrets.token_hex(16)
-        newProfile = Profile(email = email, fullname= None, pathPhoto=None, user_id = newUser.id, inbox_token=inbox_token)
+        newProfile = Profile(email = email, fullname= None, avatar=None, user_id = newUser.id, inbox_token=inbox_token)
 
         db.session.add(newProfile)
 

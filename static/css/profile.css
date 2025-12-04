@@ -41,6 +41,40 @@
     font-weight:700;
     color:var(--muted);
     font-size:28px;
+    /* overflow: hidden; */
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+.avatar-edit-btn {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(0,0,0,0.6);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: 0.3s;
+    backdrop-filter: blur(4px);
+}
+
+.avatar:hover .avatar-edit-btn {
+    opacity: 1;
+}
+
+.avatar-edit-btn:hover {
+    background: rgba(0,0,0,0.8);
 }
 
 /* اگر avatar_url خالی باشه، یک آیکون ساده نشان داده می‌شود */
@@ -57,7 +91,7 @@
 .info{
     display:flex;
     flex-direction:column;
-    gap:18px;
+    gap:12px;
     padding-top:22px;
     width:100%;
 }
@@ -76,6 +110,7 @@
 }
 
 .value{
+    width: 100%;
     color:#111;
     font-size:16px;
     word-break:break-all;
@@ -120,7 +155,7 @@
     align-items: center;
     gap: 10px;
     border-radius: 8px;
-    padding: 8px 12px;
+    padding: 7px 12px;
     background: #fbfcfe;
     border: 1px solid rgba(0,0,0,0.04);
     cursor: pointer;
@@ -136,7 +171,7 @@
 
 .url-text {
     color: var(--accent);
-    font-size: 15px;
+    font-size: 14px;
     word-break: break-all;
 }
 
@@ -184,7 +219,7 @@
 /* استایل اینپوت وقتی قابل ویرایش نیست */
 .editable-input {
     width: 100%;
-    padding: 5px 10px;
+    padding: 7px 10px;
     border: 1px solid transparent;
     border-radius: 8px;
     background: transparent;
@@ -245,3 +280,23 @@
     width: 18px;
     height: 18px;
 }
+
+#fullname{
+    position: absolute;
+    top: -30px;
+    width: 100%;
+
+}
+
+.welcome{
+    margin: auto;
+    font-size: 2rem;
+    font-weight: 900;
+    background: linear-gradient(90deg, #00ff88, #00ccff, #ff00aa, #00ff88);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 300%;
+    animation: gradientFlow 6s ease infinite;
+}
+@keyframes gradientFlow { 0%,100% { background-position: 0%; } 50% { background-position: 100%; } }
