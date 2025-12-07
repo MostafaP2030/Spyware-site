@@ -157,11 +157,19 @@ def inbox_send(token):
 
             # اگر info شامل درایو و بک‌اسلش باشه → مسیر جدیده
             info_text = msg_info.strip() if msg_info else ""
-            if msg.get('type') == 'cmd' and len(info_text) > 2 and info_text[1] == ':' and '\\' in info_text and msg.get('msg', '').startswith('cd'):  
-                profile.current_directory = info_text.rstrip('\\') + '\\'  # نرمال‌سازی
-                print(f"[+] Current directory updated: {profile.current_directory}")
-                db.session.commit()
-            print("Current directory check : ", profile.current_directory);
+            path = ""
+
+            for line in reversed(info_text.splitlines()):
+                if '<path>' in line:
+                    start = line.find('<path>') + len('<path>')
+                    path = line[start:].strip()
+                if path:
+                    profile.current_directory = path.rstrip('\\') + '\\'
+                    # print(f"[+] Current directory updated: {profile.current_directory}")
+                    db.session.commit()
+                    break  
+                
+            # print("Current directory check : ", profile.current_directory);
 
         return '', 204
     else:

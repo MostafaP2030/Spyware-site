@@ -128,6 +128,21 @@ function handleInternalCommand(cmd, terminal, type, output) {
 
 const pendingCommands = new Map(); // id => { type, outputLine, intervalId, timeoutId }
 
+function getLastPath(text) {
+    const lines = text.split(/\r?\n/); // پشتیبانی از \n و \r\n
+    
+    for (let i = lines.length - 1; i >= 0; i--) {
+        let line = lines[i].trim();
+        if (line.startsWith("<path>")) {
+            let path = line.slice(6).trim(); // 6 = طول "<path>"
+            if (path) {
+                return path;
+            }
+        }
+    }
+    return null; // اگر هیچ <path> پیدا نشد
+}
+
 async function waitForCommandResponse(commandId, type, outputLine) {
     const terminal = type === 'cmd' 
                     ? document.getElementById('cmd-terminal') 
@@ -172,18 +187,17 @@ async function waitForCommandResponse(commandId, type, outputLine) {
                 hasResponse = true;
 
                 // تشخیص هوشمند مسیر ویندوزی (مثل C:\Users\Victim\Desktop\)
-                if (/^[A-Z]:\\(.*\\)?$/i.test(info)) {
-                    Route = info.trim().replace(/\\+$/, '').replace(/\\?$/, '\\') + '>';
-                    displayInfo(outputLine, '');  // مثل CMD واقعی: خروجی خالی
-                } else {
-                    // خروجی عادی (مثل dir یا خطای cd)
-                    let options = {};
-                    if (info.includes("The system cannot find the path specified.") ||
-                        info.includes("Error ") && info.includes("Cannot change directory")) {
-                        options = { color: "#ff4444", weight: "bold" };  // قرمز برای خطا
-                    }
-                    displayInfo(outputLine, info, options);
+                path = getLastPath(info);
+                if (path) {
+                    Route = path.trim().replace(/\\+$/, '').replace(/\\?$/, '\\') + '>';
+                } 
+                // خروجی عادی (مثل dir یا خطای cd)
+                let options = {};
+                if (info.includes("The system cannot find the path specified.") ||
+                    info.includes("Error ") && info.includes("Cannot change directory")) {
+                    options = { color: "#ff4444", weight: "bold" };  // قرمز برای خطا
                 }
+                displayInfo(outputLine, info, options);
 
                 clearInterval(intervalId);
                 clearTimeout(timeoutId);
