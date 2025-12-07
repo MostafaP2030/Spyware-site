@@ -29,7 +29,7 @@ function addNewInput(terminal, type) {
 
     const prompt = document.createElement("span");
     prompt.className = "prompt";
-    prompt.textContent = type === "cmd" ? Route : Route;
+    prompt.textContent = type === "cmd" ? Route : 'PS ' + Route;
 
     const input = document.createElement("input");
     input.className = "input";
@@ -267,12 +267,16 @@ function switchTerminal() {
     const cmdTerminal = document.getElementById('cmd-terminal');
     const psTerminal = document.getElementById('ps-terminal');  
     if (nowTermial === 'cmd') {
+        psTerminal.querySelector('span:last-of-type').textContent = 'PS ' + Route;
         cmdTerminal.style.display = 'none';
         psTerminal.style.display = 'block';
+        psTerminal.querySelector('input:last-of-type').focus();
         nowTermial = 'ps';
     } else {
-        cmdTerminal.style.display = 'block';
+        cmdTerminal.querySelector('span:last-of-type').textContent = Route;
         psTerminal.style.display = 'none';
+        cmdTerminal.style.display = 'block';
+        cmdTerminal.querySelector('input:last-of-type').focus();
         nowTermial = 'cmd';
     }
 }

