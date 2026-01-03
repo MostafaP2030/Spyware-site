@@ -10,6 +10,7 @@
 }
 
 body{
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -28,6 +29,7 @@ main {
 }
 
 .color-top{
+    z-index: 1000;
     width: 100%;
     height: 110px;
     background-color: #222327;
@@ -70,6 +72,7 @@ main {
 }
 
 .navigation {
+    z-index: 1000;
     width: 100%;
     height: 70px;
     background-color: #fff;

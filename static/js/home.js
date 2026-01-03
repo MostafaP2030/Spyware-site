@@ -1,3 +1,5 @@
+{
+const pendingCommands = new Map(); // <--- این خط را اضافه کنید
 document.querySelector('.power-btn').onclick = function() {
     this.classList.toggle('on');
 };
@@ -189,6 +191,7 @@ async function waitForCommandResponse(commandId, type, targetSpan) {
                 else if(targetSpan)
                 {
                     targetSpan.textContent = info;
+                    showNotification("successfully", 'success'); 
 
                     const label = targetSpan.dataset.name;
                     let key = '';
@@ -331,4 +334,17 @@ function speakCommand()
     inputSpeak.value = "";
 
     lockAllFor(10);
+}
+
+const homeCleanup = setInterval(() => {
+        if (!document.querySelector('.power-btn')) { // چک کردن وجود دکمه‌ای از صفحه home
+            pendingCommands.forEach(cmd => {
+                clearInterval(cmd.intervalId);
+                clearTimeout(cmd.timeoutId);
+            });
+            pendingCommands.clear();
+            clearInterval(homeCleanup);
+        }
+    }, 2000);
+
 }

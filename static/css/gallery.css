@@ -1,0 +1,202 @@
+.container-gallery {
+    /* width: 80%; */
+    /* height: 100%; ارتفاع کل صفحه */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* background-color: #00ffcc; */
+}
+
+/* wrapper */
+.power-wrapper {
+    position: absolute;
+    top: calc(50% - 100px); 
+    left: calc(50% - 100px);
+    width: 200px;
+    height: 200px;
+    transform: scale(1);
+    
+    /* تغییر انیمیشن به حالت مستقیم و نرم */
+    transition: 
+        top 1s cubic-bezier(0.4, 0, 0.2, 1),
+        left 1s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+/* gradient ring */
+.power-wrapper::before {
+    content: "";
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s;
+    filter: blur(6px);
+    z-index: 0;
+}
+
+.power-wrapper.waiting::before {
+    opacity: 1;
+    background: linear-gradient(135deg, #ff9800, #ff5722);
+    animation: pulse 1.5s infinite;
+}
+
+/* --- حالت روشن (ON) --- */
+/* وقتی کلاس on اضافه شود، دکمه به بالا سمت چپ می‌رود */
+.power-wrapper.on {
+    top: 75px;  /* فاصله از بالا */
+    left: -40px; /* فاصله از چپ */
+    /* translate(0,0) آفست مرکز را خنثی می‌کند و scale آن را کوچک می‌کند */
+    transform: scale(0.4); 
+}
+
+.power-wrapper.on::before {
+    opacity: 1;
+    background: linear-gradient(135deg, #00ffcc, #0066ff);
+    inset: -20px; /* کمی بزرگتر شدن هاله نور در حالت روشن */
+}
+
+/* button */
+.power-btn {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: none;
+    background: radial-gradient(circle at top, #2a2a2a, #111);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+    position: relative;
+    box-shadow:
+        inset 0 0 20px rgba(255,255,255,0.05),
+        0 10px 30px rgba(0,0,0,0.8);
+    transition: box-shadow 0.3s ease;
+}
+
+/* icon */
+.power-icon {
+    font-size: 80px;
+    color: #555;
+    transition: color 0.3s, text-shadow 0.3s;
+}
+
+.power-wrapper.waiting .power-icon {
+    color: #ff9800;
+    text-shadow: 0 0 15px #ff9800;
+}
+
+.power-wrapper.on .power-icon {
+    color: #00ffcc;
+    text-shadow: 0 0 25px #00ffcc;
+}
+
+/* lock */
+.power-wrapper.locked {
+    pointer-events: none;
+}
+
+/* انیمیشن تپش برای حالت انتظار */
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.8; }
+}
+
+/* کانتینر مانیتور (قاب سیاه) */
+.monitor-display {
+    position: absolute;
+    top: 60%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    /* تنظیم سایز قاب مانیتور نسبت به صفحه */
+    width: 80%;  /* عرض ۸۰ درصد صفحه */
+    height: 80%; /* ارتفاع ۷۰ درصد صفحه */
+    max-width: 1000px; /* حداکثر عرض (برای مانیتورهای خیلی بزرگ) */
+    
+    border: 2px solid #333;
+    background: #000; /* رنگ پس‌زمینه سیاه برای فضاهای خالی */
+    
+    display: flex;       /* برای وسط‌چین کردن عکس */
+    justify-content: center;
+    align-items: center;
+    
+    overflow: hidden;    /* اگر عکس بزرگتر شد، بیرون نزند */
+    border-radius: 10px;
+    box-shadow: 0 0 50px rgba(0,0,0,0.5);
+    z-index: -1; 
+    
+    /* انیمیشن ظاهر شدن */
+    opacity: 0;
+    /* transition: opacity 0.1s ease 0.5s; */
+}
+
+.monitor-display.active {
+    opacity: 1;
+}
+
+/* تنظیمات خود عکس */
+.monitor-display img {
+    /* عکس تمام فضای کانتینر را می‌گیرد اما... */
+    width: 100%;
+    height: 100%;
+    
+    /* ...این خط مهم‌ترین بخش است: */
+    object-fit: contain; /* عکس را کوچک کن تا کامل دیده شود (نسبت تصویر حفظ می‌شود) */
+    
+    display: none; /* توسط JS وقتی لود شد block می‌شود */
+}
+
+.loading-text {
+    position: absolute; /* روی عکس شناور باشد */
+    color: #00ffcc;
+    font-family: monospace;
+    font-size: 1.5rem;
+    animation: blink 1s infinite;
+    pointer-events: none;
+}
+
+/* // =============================== */
+.notification {
+    position: fixed;
+    top: 100px;                    /* شروع از بیرون صفحه */
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 300px;
+    max-width: 90%;
+    padding: 14px 24px;
+    border-radius: 8px;
+    color: white;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 15px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    opacity: 0;
+    transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    pointer-events: none; /* تا روی کلیک‌ها تأثیر نذاره */
+    white-space: pre-wrap; /* برای حفظ \n و نمایش درست خروجی چندخطی */
+    word-break: break-word;
+}
+
+.notification.success {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+}
+
+.notification.error {
+    background: linear-gradient(135deg, #f44336, #d32f2f);
+}
+
+.notification.show {
+    top: 140px;
+    opacity: 1;
+}
+
+.notification.hide {
+    top: 100px;
+    opacity: 0;
+}

@@ -1,8 +1,21 @@
+{
 let Route = window.currentRoutePrompt || "C:\\User>";
 let lastCmdCommand = "";
 let lastPsCommand = "";
 
 const INTERNAL_COMMANDS = ['clear', 'about', 'cls', 'clear'];
+
+// چک می‌کنیم که آیا قبلا این لیسنر را ست کرده‌ایم یا نه
+if (!window.isTerminalListenerAttached) {
+    document.addEventListener('click', e => {
+        const terminal = e.target.closest('.cmd, .ps');
+        if (!terminal) return;
+        const activeInput = terminal.querySelector('input[id$="-active"]');
+        if (activeInput) activeInput.focus();
+    });
+    // یک پرچم (Flag) روی پنجره می‌گذاریم که یعنی "انجام شد"
+    window.isTerminalListenerAttached = true;
+}
 
 document.addEventListener('click', e => {
     const terminal = e.target.closest('.cmd, .ps');
@@ -293,4 +306,18 @@ function switchTerminal() {
         cmdTerminal.querySelector('input:last-of-type').focus();
         nowTermial = 'cmd';
     }
+}
+
+const cleanupInterval = setInterval(() => {
+    // اگر ترمینال در صفحه نبود، یعنی کاربر رفته
+    if (!document.getElementById('cmd-terminal')) {
+        pendingCommands.forEach(val => {
+            clearInterval(val.intervalId);
+            clearTimeout(val.timeoutId);
+        });
+        pendingCommands.clear();
+        clearInterval(cleanupInterval);
+    }
+}, 2000);   
+
 }

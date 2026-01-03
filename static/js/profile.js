@@ -1,5 +1,4 @@
-// static/js/profile.js
-
+{
 console.log("profile.js لود شد");
 
 // تابع کپی URL (همون قبلی که کار می‌کرد)
@@ -130,8 +129,11 @@ function runProfileScripts() {
     initProfileEdit();
 }
 
-// این دو خط حیاتی هستن
-document.addEventListener("pageContentLoaded", runProfileScripts);
+if (!window.isProfileScriptAttached) {
+        document.addEventListener("pageContentLoaded", runProfileScripts);
+        window.isProfileScriptAttached = true;
+}
+
 document.addEventListener("DOMContentLoaded", runProfileScripts);
 
 // بک‌آپ نهایی (در صورت نیاز)
@@ -198,3 +200,6 @@ document.getElementById("avatarInput").addEventListener("change", async function
         this.value = "";
     }
 });
+
+
+}

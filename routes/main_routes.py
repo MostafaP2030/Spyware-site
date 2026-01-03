@@ -1,5 +1,3 @@
-# main_routes.py — نسخه نهایی، تمیز، کاملاً تست‌شده و بدون خطا
-
 from flask import (
     Blueprint, render_template, jsonify, request, session,
     send_from_directory, redirect, url_for, current_app, flash
@@ -8,6 +6,7 @@ from ..models import User, Profile, db
 from werkzeug.utils import secure_filename
 from PIL import Image
 import os
+import time     
 
 # تنظیمات آپلود
 ALLOWED_EXT = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
@@ -50,15 +49,20 @@ def is_valid_image(file_stream):
 # ------------------------------------------------------------------
 @main_bp.before_request
 def require_login():
-    # این مسیرها بدون لاگین در دسترس هستن
+    # 1. لیست سفید برای فایل‌های استاتیک و سرویس‌ورکر
     if request.endpoint in ['static', 'main.service_worker', 'main.ping', 'main.upload_avatar']:
         return
+    
+    # 2. اضافه شده: تمام درخواست‌هایی که به /api/ می‌روند را بدون لاگین قبول کن
+    # (چون این درخواست‌ها در تابع خودشان توکن را چک می‌کنند)
+    if request.path.startswith('/api/'):
+        return
 
+    # 3. بررسی لاگین برای سایر صفحات
     if not get_current_user():
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify({'refresh': True, 'redirect': '/form'}), 200
         return redirect('/form')
-
 
 # ------------------------------------------------------------------
 # روت‌های اصلی
@@ -150,17 +154,82 @@ def profile():
     return render_template('base.html')
 
 
-@main_bp.route('/photo')
-def photo():
+@main_bp.route('/gallery')
+def gallery():
     user = get_current_user()
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return jsonify({
-            'content': render_template('photo.html', user=user),
-            'css': ['/static/css/photo.css'],
-            'js': ['/static/js/photo.js']
+            'content': render_template('gallery.html', user=user),
+            'css': ['/static/css/gallery.css'],
+            'js': ['/static/js/gallery.js']
         })
     return render_template('base.html')
 
+@main_bp.route('/get-latest-image')
+def get_latest_image():
+    user = get_current_user()
+    if not user or not user.profile:
+        return jsonify({'exists': False}), 401
+    
+    token = user.profile.inbox_token
+    gallery_dir = os.path.join(current_app.static_folder, 'uploads', 'gallery', token)
+
+    if os.path.exists(gallery_dir):
+        files = os.listdir(gallery_dir)
+        if files:
+            filename = files[0]
+            file_path = os.path.join(gallery_dir, filename)
+            
+            # دریافت زمان آخرین تغییر فایل
+            mtime = os.path.getmtime(file_path)
+            # محاسبه اختلاف زمانی با لحظه فعلی (به ثانیه)
+            age = time.time() - mtime
+            
+            return jsonify({
+                'exists': True,
+                'url': f'/static/uploads/gallery/{token}/{filename}',
+                'age': age  # ارسال سن فایل به ثانیه
+            })
+            
+    return jsonify({'exists': False})
+
+@main_bp.route('/api/user/<token>/gallery', methods=['POST'])
+def receive_gallery_image(token):
+    # ۱. احراز هویت با توکن
+    profile = Profile.query.filter_by(inbox_token=token).first()
+    if not profile:
+        return jsonify({'error': 'Invalid token'}), 404
+
+    # ۲. بررسی فایل
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    # ۳. مسیر پوشه گالری کاربر
+    gallery_dir = os.path.join(current_app.static_folder, 'uploads', 'gallery', token)
+    
+    # اگر پوشه نبود، بساز
+    if not os.path.exists(gallery_dir):
+        os.makedirs(gallery_dir)
+    else:
+        # ۴. پاک کردن تمام عکس‌های قبلی (نکته کلیدی درخواست شما)
+        for filename in os.listdir(gallery_dir):
+            file_path = os.path.join(gallery_dir, filename)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                print(f"Error deleting file: {e}")
+
+    # ۵. ذخیره فایل جدید
+    filename = secure_filename(file.filename)
+    save_path = os.path.join(gallery_dir, filename)
+    file.save(save_path)
+    
+    return jsonify({'status': 'success', 'message': 'Image updated'}), 200
 
 @main_bp.route('/setting')
 def setting():
