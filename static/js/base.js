@@ -119,6 +119,7 @@ function loadPage(url) {
         content.style.display = 'block';
     });
 }
+
 window.addEventListener('popstate', (event) => {
     if (event.state && event.state.url) {
         const url = event.state.url;
@@ -169,7 +170,7 @@ setInterval(checkConnection, 3000);
 // add serviceWorker to site
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/static/js/sw.js')
+    navigator.serviceWorker.register('/sw.js')
       .then(reg => {
         console.log('✅ Service Worker ثبت شد با scope:', reg.scope);
       })

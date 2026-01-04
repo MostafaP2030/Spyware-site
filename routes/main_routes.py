@@ -405,10 +405,10 @@ def change_profile():
 # ------------------------------------------------------------------
 # فایل‌های استاتیک
 # ------------------------------------------------------------------
-@main_bp.route('/sw.js')
-def service_worker():
-    return send_from_directory('static/js', 'sw.js')
 
+@main_bp.route('/sw.js')
+def serve_sw():
+    return send_from_directory('static', 'sw.js', mimetype='application/javascript')
 
 @main_bp.route('/ping')
 def ping():
