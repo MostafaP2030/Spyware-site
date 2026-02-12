@@ -117,7 +117,10 @@ function loadPage(url) {
                 const timeout = new Promise(r => setTimeout(r, 2000));
                 await Promise.race([Promise.all(cssPromises), timeout]);
             }
-
+            const notification = document.querySelector(".notification");
+            if (notification) {
+                notification.remove();
+            }
             // 1. تغییر HTML
             mainContent.innerHTML = data.content;
             
